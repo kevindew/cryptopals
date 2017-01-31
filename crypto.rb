@@ -3,6 +3,10 @@ module Crypto
     hex_string.scan(/../).map(&:hex)
   end
 
+  def self.bytes_to_hex(bytes)
+    bytes.map { |byte| byte.to_s(16) }.join
+  end
+
   # Base64 takes 3 bytes and splits them into 4 6-bit numbers which can be
   # represented as characters
   def self.bytes_to_base64(bytes)
@@ -22,5 +26,9 @@ module Crypto
       end
       memo + base64.join
     end
+  end
+
+  def self.xor_byte_buffers(buffer_1, buffer_2)
+    buffer_1.zip(buffer_2).map { |a, b| a ^ b }
   end
 end
