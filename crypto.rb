@@ -31,4 +31,24 @@ module Crypto
   def self.xor_byte_buffers(buffer_1, buffer_2)
     buffer_1.zip(buffer_2).map { |a, b| a ^ b }
   end
+
+  def self.repeated_key(key, length)
+    repeat = (length.to_f / key.length).ceil
+    (key * repeat)[0...length]
+  end
+
+  def self.sort_by_english_likelihood(guesses)
+    guesses.sort do |(_, a), (_, b)|
+      self.frequent_character_score(b) <=> self.frequent_character_score(a)
+    end
+  end
+
+  def self.frequent_character_score(string, match = "ETAOIN SHRDLU")
+    string.chars
+      .map(&:downcase)
+      .select { |c| match.downcase.include?(c) }
+      .group_by { |c| c }
+      .values
+      .inject(0) { |score, letters| score + letters.length }
+  end
 end
