@@ -57,4 +57,22 @@ module Crypto
       memo + i.to_s(2).count("1")
     end
   end
+
+  def self.likely_key_sizes_by_hamming(buffer, min, max)
+    if max * 4 > buffer.length
+      raise "Only designed for keys <= 4 times the length of the string"
+    end
+    normalised_hammings = (min..max).map do |size|
+      hamming_distances = 4.times.map do |index|
+        start = size * index
+        first_buffer = buffer[start, size]
+        second_buffer = buffer[start + size, size]
+        self.hamming_distance(first_buffer, second_buffer)
+      end
+      normalised = hamming_distances.map { |h| h.to_f / size }
+      average = normalised.reduce(:+) / normalised.size
+      [size, average]
+    end
+    normalised_hammings.sort_by(&:last)
+  end
 end
