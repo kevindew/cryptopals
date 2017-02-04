@@ -51,4 +51,10 @@ module Crypto
       .values
       .inject(0) { |score, letters| score + letters.length }
   end
+
+  def self.hamming_distance(buffer_1, buffer_2)
+    self.xor_byte_buffers(buffer_1, buffer_2).inject(0) do |memo, i|
+      memo + i.to_s(2).count("1")
+    end
+  end
 end
