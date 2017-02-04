@@ -4,7 +4,7 @@ module Crypto
   end
 
   def self.bytes_to_hex(bytes)
-    bytes.map { |byte| byte.to_s(16) }.join
+    bytes.map { |byte| byte.to_s(16).rjust(2, "0") }.join
   end
 
   # Base64 takes 3 bytes and splits them into 4 6-bit numbers which can be
