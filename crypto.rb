@@ -75,4 +75,14 @@ module Crypto
     end
     normalised_hammings.sort_by(&:last)
   end
+
+  def self.sorted_single_char_attempts(buffer)
+    attempts = (0..255).map do |byte|
+      key = self.repeated_key(byte.chr, buffer.length).chars.map(&:ord)
+      decoded = self.xor_byte_buffers(buffer, key).map(&:chr).join
+      [byte, decoded]
+    end
+
+    self.sort_by_english_likelihood(attempts)
+  end
 end
