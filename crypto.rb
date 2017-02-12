@@ -108,9 +108,23 @@ module Crypto
     cipher.update(plain_text) + cipher.final
   end
 
-  def self.ecb_decrypt(encrypted_text, key)
+  def self.ecb_decrypt(encrypted_text, key, with_final: true)
     cipher = OpenSSL::Cipher.new("AES-128-ECB").decrypt
     cipher.key = key
-    cipher.update(encrypted_text) + cipher.final
+    cipher.update(encrypted_text) + (with_final ? cipher.final : "")
+  end
+
+  def self.cbc_decrypt(encrypted_text, key, iv)
+    in_blocks = encrypted_text.chars.each_slice(16).map(&:join)
+    in_blocks.each_with_index.map do |block, index|
+      # seem to need a 17 character here :-/
+      block_decrypted = self.ecb_decrypt(block + "a", key, with_final: false)
+      previous_block = index == 0 ? iv : in_blocks[index - 1]
+      xored = self.xor_byte_buffers(
+        block_decrypted.chars.map(&:ord),
+        previous_block.chars.map(&:ord)
+      )
+      xored.map(&:chr).join
+    end.join
   end
 end
