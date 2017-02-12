@@ -1,3 +1,5 @@
+require "openssl"
+
 module Crypto
   def self.hex_to_bytes(hex_string)
     hex_string.scan(/../).map(&:hex)
@@ -98,5 +100,17 @@ module Crypto
     else
       to_pad + padding
     end
+  end
+
+  def self.ecb_encrypt(plain_text, key)
+    cipher = OpenSSL::Cipher.new("AES-128-ECB").encrypt
+    cipher.key = key
+    cipher.update(plain_text) + cipher.final
+  end
+
+  def self.ecb_decrypt(encrypted_text, key)
+    cipher = OpenSSL::Cipher.new("AES-128-ECB").decrypt
+    cipher.key = key
+    cipher.update(encrypted_text) + cipher.final
   end
 end
