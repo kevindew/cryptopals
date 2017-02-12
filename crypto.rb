@@ -85,4 +85,18 @@ module Crypto
 
     self.sort_by_english_likelihood(attempts)
   end
+
+  # Pad the string/byte array until it is the length of the block.
+  # The number of bytes to be added determines which byte is appended.
+  # eg. for 5 bytes added each extra byte would have a value of 5
+  def self.pkcs7_padding(to_pad, block_size = 16)
+    raise "input longer than block size" if to_pad.length > block_size
+    bytes = block_size - to_pad.length
+    padding = Array.new(bytes, bytes)
+    if to_pad.is_a?(String)
+      to_pad + padding.map(&:chr).join
+    else
+      to_pad + padding
+    end
+  end
 end
