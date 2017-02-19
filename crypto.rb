@@ -1,4 +1,5 @@
 require "openssl"
+require "byebug"
 
 module Crypto
   def self.hex_to_bytes(hex_string)
@@ -102,6 +103,18 @@ module Crypto
     end
   end
 
+  def self.trim_pkcs7_padding(to_trim, block_size = 16)
+    raise "input longer than block size" if to_trim.length > block_size
+    as_bytes = to_trim.is_a?(String) ? to_trim.bytes : to_trim
+    last_byte = as_bytes.last
+    potential_padding = as_bytes[(as_bytes.length - last_byte)..-1]
+    if potential_padding.length == last_byte && potential_padding.uniq == [last_byte]
+      to_trim[0...(last_byte * -1)]
+    else
+      to_trim
+    end
+  end
+
   def self.ecb_encrypt(plain_text, key)
     cipher = OpenSSL::Cipher.new("AES-128-ECB").encrypt
     cipher.key = key
@@ -118,13 +131,11 @@ module Crypto
     in_blocks = encrypted_text.chars.each_slice(16).map(&:join)
     in_blocks.each_with_index.map do |block, index|
       # seem to need a 17 character here :-/
-      block_decrypted = self.ecb_decrypt(block + "a", key, with_final: false)
+      block_decrypted = self.ecb_decrypt(block + "\x00", key, with_final: false)
       previous_block = index == 0 ? iv : in_blocks[index - 1]
-      xored = self.xor_byte_buffers(
-        block_decrypted.chars.map(&:ord),
-        previous_block.chars.map(&:ord)
-      )
-      xored.map(&:chr).join
+      xored = self.xor_byte_buffers(block_decrypted.bytes, previous_block.bytes)
+      as_string = xored.map(&:chr).join
+      index + 1 == in_blocks.length ? trim_pkcs7_padding(as_string) : as_string
     end.join
   end
 end
